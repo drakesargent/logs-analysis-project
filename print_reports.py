@@ -2,44 +2,36 @@
 
 import psycopg2
 import datetime
+
 # constant for DB name
 DATABASE_NAME = "news"
 
 # queries
 errorQuery = """
-Select ed.errDate::DATE, ed.errPct 
-From (Select concat_ws('-',getdate.year, getdate.month, getdate.day) as errDate,
-cast(count(statuserr.status) as double precision)/cast(count(getdate.allStatus) as double precision) as errPct
-From (Select extract(year from time)as year, extract(month from time) as month, extract(day from time) as day,
-status as allStatus, id
-From log) as getdate left join (Select status, id from log where status like '%4__%') as statuserr
-on getdate.id = statuserr.id
-Group by errDate
-) as ed
-Where ed.errPct > 0.01;
+SELECT errDate::DATE, errPct
+FROM error_pct_log
+WHERE errPct >0.01;
 """
 
 popularViewQuery = """
-select title, count(title) numViews from
-(select title, author, concat('/article/',slug) as slugPath from articles) as a
-join log as l on a.slugPath = l.path
-group by title
-order by numViews desc
-limit 3;
+SELECT articleTitle, count(articleTitle) AS articleViews 
+FROM log_article_author
+WHERE articleTitle IS NOT NULL
+GROUP BY articleTitle
+ORDER BY articleViews DESC
+LIMIT 3;
 """
 
 authorViewQuery = """
-select authors.name, count(authors.name) numViews from
-(select author, concat('/article/',slug) as slugPath from articles
-) as artJoin
-join log as l on artJoin.slugPath = l.path
-join authors on artJoin.author = authors.id
-group by name
-order by numViews desc;
+SELECT authorName, count(authorName) AS authorViews
+FROM log_article_author
+WHERE authorName IS NOT NULL
+GROUP BY authorName
+ORDER BY authorViews DESC;
 """
+
+
 # function to return query data
-
-
 def queryData(db, query):
     conn = psycopg2.connect(database=db)
     cursor = conn.cursor()

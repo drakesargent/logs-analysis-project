@@ -18,3 +18,20 @@ LEFT JOIN
     WHERE logStatus LIKE '%4__%') AS eLogs
 ON aLogs.logID = eLogs.logId
 GROUP BY aLogs.logDay;
+
+SELECT articleTitle, count(articleTitle) AS articleViews 
+FROM log_article_author
+WHERE articleTitle IS NOT NULL
+GROUP BY articleTitle
+ORDER BY articleViews DESC
+LIMIT 3;
+
+SELECT authorName, count(authorName) AS authorViews
+FROM log_article_author
+WHERE authorName IS NOT NULL
+GROUP BY authorName
+ORDER BY authorViews DESC;
+
+SELECT errDate::DATE, errPct
+FROM error_pct_log
+WHERE errPct >0.01;
