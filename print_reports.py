@@ -14,7 +14,7 @@ WHERE errPct >0.01;
 """
 
 popularViewQuery = """
-SELECT articleTitle, count(articleTitle) AS articleViews 
+SELECT articleTitle, count(articleTitle) AS articleViews
 FROM log_article_author
 WHERE articleTitle IS NOT NULL
 GROUP BY articleTitle
@@ -57,4 +57,5 @@ for author in authorViews:
 errorReport = queryData(DATABASE_NAME, errorQuery)
 print("\nDays with errors >1%:")
 for error in errorReport:
-    print("{} -- {:.2%} errors".format(error[0].strftime("%B %d, %Y"), error[1]))
+    print("{} -- {:.2%} errors".format(error[0].strftime("%B %d, %Y"),
+                                       error[1]))
