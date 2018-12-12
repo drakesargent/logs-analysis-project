@@ -7,55 +7,88 @@ import datetime
 DATABASE_NAME = "news"
 
 # queries
-errorQuery = """
-SELECT errDate::DATE, errPct
-FROM error_pct_log
-WHERE errPct >0.01;
-"""
 
-popularViewQuery = """
-SELECT articleTitle, count(articleTitle) AS articleViews
-FROM log_article_author
-WHERE articleTitle IS NOT NULL
-GROUP BY articleTitle
-ORDER BY articleViews DESC
-LIMIT 3;
-"""
+def dbConnect(DBNAME):
+    """
+    dbConnect takes a database name as a parameter.
+    Creates a connection to a database defined by DBNAME,
+    and a cursor for that database.
+    args:
+    DBNAME - a string that is the name the database to
+                which the function connects 
 
-authorViewQuery = """
-SELECT authorName, count(authorName) AS authorViews
-FROM log_article_author
-WHERE authorName IS NOT NULL
-GROUP BY authorName
-ORDER BY authorViews DESC;
-"""
-
-
-# function to return query data
-def queryData(db, query):
-    conn = psycopg2.connect(database=db)
+    Returns:
+        database, cursor - a tuple.
+    """
+    conn = psycopg2.connect(database=DBNAME)
     cursor = conn.cursor()
+    
+    return (conn,cursor)
+
+def executeQuery(query):
+    """
+    executeQuery takes a SQL query as a parameter.
+    Executes query and returns the result as a list of tuples.
+    args:
+    query - a SQL query statement to be executed.
+
+    returns:
+    A list of tuples containing the results of the query.
+    """
+    conn, cursor = dbConnect(DATABASE_NAME)
     cursor.execute(query)
     data = cursor.fetchall()
     conn.close()
     return data
 
+def printTopArticles():
+    """Prints out the top 3 articles of all time."""
+    
+    query = """
+    SELECT articleTitle, count(articleTitle) AS articleViews
+    FROM log_article_author
+    WHERE articleTitle IS NOT NULL
+    GROUP BY articleTitle
+    ORDER BY articleViews DESC
+    LIMIT 3;
+    """
+    results = executeQuery(query)
+    print("\nTop 3 articles:")
+    for article in results:
+        print('"{}" -- {} views'.format(article[0], article[1]))
 
-# Report 1: 3 most popular articles
-popularArticles = queryData(DATABASE_NAME, popularViewQuery)
-print("Top 3 articles:")
-for article in popularArticles:
-    print('"{}" -- {}'.format(article[0], article[1]))
+def printTopAuthors():
+    """Prints a list of autors ranked by article views."""
+    
+    query ="""
+    SELECT authorName, count(authorName) AS authorViews
+    FROM log_article_author
+    WHERE authorName IS NOT NULL
+    GROUP BY authorName
+    ORDER BY authorViews DESC;
+    """
+    results = executeQuery(query)
+    print("\nNumber of views by author:")
+    for author in results:
+        print("{} -- {} views".format(author[0], author[1]))
 
-# Report 2: number of views by author
-authorViews = queryData(DATABASE_NAME, authorViewQuery)
-print("\nNumber of views by author:")
-for author in authorViews:
-    print("{} -- {} views".format(author[0], author[1]))
+def printErrorDaysOver1Pct():
+    """
+    Prints out the days where more than 1% of logged 
+    requests were errors.
+    """
+    query ="""
+    SELECT errDate::DATE, errPct
+    FROM error_pct_log
+    WHERE errPct >0.01;
+    """
+    results = executeQuery(query)
+    print("\nDays with errors >1%:")
+    for error in results:
+        print("{} -- {:.2%} errors".format(error[0].strftime("%B %d, %Y"),
+                                        error[1]))
 
-# Report 3: dates of errors > than 1%
-errorReport = queryData(DATABASE_NAME, errorQuery)
-print("\nDays with errors >1%:")
-for error in errorReport:
-    print("{} -- {:.2%} errors".format(error[0].strftime("%B %d, %Y"),
-                                       error[1]))
+if __name__ == '__main__':
+    printTopArticles()
+    printTopAuthors()
+    printErrorDaysOver1Pct()
