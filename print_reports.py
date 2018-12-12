@@ -6,7 +6,6 @@ import datetime
 # constant for DB name
 DATABASE_NAME = "news"
 
-# queries
 
 def dbConnect(DBNAME):
     """
@@ -15,15 +14,15 @@ def dbConnect(DBNAME):
     and a cursor for that database.
     args:
     DBNAME - a string that is the name the database to
-                which the function connects 
+                    which the function connects
 
     Returns:
         database, cursor - a tuple.
     """
     conn = psycopg2.connect(database=DBNAME)
     cursor = conn.cursor()
-    
-    return (conn,cursor)
+    return (conn, cursor)
+
 
 def executeQuery(query):
     """
@@ -41,9 +40,10 @@ def executeQuery(query):
     conn.close()
     return data
 
+
 def printTopArticles():
     """Prints out the top 3 articles of all time."""
-    
+
     query = """
     SELECT articleTitle, count(articleTitle) AS articleViews
     FROM log_article_author
@@ -54,13 +54,14 @@ def printTopArticles():
     """
     results = executeQuery(query)
     print("\nTop 3 articles:")
-    for article in results:
-        print('"{}" -- {} views'.format(article[0], article[1]))
+    for title, views in results:
+        print('"{}" -- {} views'.format(title, views))
+
 
 def printTopAuthors():
     """Prints a list of autors ranked by article views."""
-    
-    query ="""
+
+    query = """
     SELECT authorName, count(authorName) AS authorViews
     FROM log_article_author
     WHERE authorName IS NOT NULL
@@ -69,26 +70,28 @@ def printTopAuthors():
     """
     results = executeQuery(query)
     print("\nNumber of views by author:")
-    for author in results:
-        print("{} -- {} views".format(author[0], author[1]))
+    for author, views in results:
+        print("{} -- {} views".format(author, views))
+
 
 def printErrorDaysOver1Pct():
     """
-    Prints out the days where more than 1% of logged 
+    Prints out the days where more than 1% of logged
     requests were errors.
     """
-    query ="""
+    query = """
     SELECT errDate::DATE, errPct
     FROM error_pct_log
     WHERE errPct >0.01;
     """
     results = executeQuery(query)
     print("\nDays with errors >1%:")
-    for error in results:
-        print("{} -- {:.2%} errors".format(error[0].strftime("%B %d, %Y"),
-                                        error[1]))
+    for date, pct in results:
+        print("{:%B %d, %Y} -- {:.2%} errors".format(date, pct))
+
 
 if __name__ == '__main__':
+
     printTopArticles()
     printTopAuthors()
     printErrorDaysOver1Pct()
