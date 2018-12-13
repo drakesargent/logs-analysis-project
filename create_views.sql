@@ -1,5 +1,5 @@
 --Run: psql -d news -f create_views.sql--
---    to create the views below for the queries in print_reports.py--
+--to create the views below for the queries in print_reports.py--
 --View for Article/Author queries--
 CREATE view article_author AS
 SELECT
