@@ -46,7 +46,7 @@ def printTopArticles():
 
     query = """
     SELECT articleTitle, count(articleTitle) AS articleViews
-    FROM log_article_author
+    FROM article_author
     WHERE articleTitle IS NOT NULL
     GROUP BY articleTitle
     ORDER BY articleViews DESC
@@ -63,7 +63,7 @@ def printTopAuthors():
 
     query = """
     SELECT authorName, count(authorName) AS authorViews
-    FROM log_article_author
+    FROM article_author
     WHERE authorName IS NOT NULL
     GROUP BY authorName
     ORDER BY authorViews DESC;

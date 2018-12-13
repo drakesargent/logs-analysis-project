@@ -1,44 +1,36 @@
 # Logs Analysis Project
 ## Description
-This program connects to a database, performs queries, and prints results with headings for each query. The queries are run at launch of the application script without user intervention and exits upon completion.
-## Pre-Run Notice
-The application assumes that two views have been created on the postgrsql database. The first view joins the log, articles, and authors tables. The second view, uses the first view to create an error specific log view.
+This program connects to a PostgreSQL database, performs queries, 
+and prints results with headings for each query. The queries are run at launch 
+of the application script without user intervention and exits upon completion.
 
-**Code for view 1:**
-```sql
-CREATE view log_article_author AS
-SELECT log.id AS logId, log.time AS logTime, log.status AS logStatus,
-    log.path AS logPath, articles.title AS articleTitle, authors.name AS authorName 
-FROM log LEFT JOIN articles ON log.path = concat('/article/',articles.slug) 
-LEFT JOIN authors ON articles.author = authors.id;
-```
-**Code for view 2:**
-```sql
-CREATE view error_pct_log AS
-SELECT aLogs.logDay AS errDate, 
-CAST(count(eLogs.logStatus) AS DOUBLE PRECISION)/CAST(count(aLogs.logStatus) AS DOUBLE PRECISION) AS errPct
-FROM
-(Select to_char(logTime, 'YYYY-MM-DD') AS logDay, logStatus, logId 
-    From log_article_author) AS aLogs
-LEFT JOIN
-(SELECT to_char(logTime, 'YYYY-MM-DD') AS logDay, logStatus, logId 
-    FROM log_article_author
-    WHERE logStatus LIKE '%4__%') AS eLogs
-ON aLogs.logID = eLogs.logId
-GROUP BY aLogs.logDay;
-```
+The *news* database is for a fictional news website. It contains 3 tables:
+articles, authors, and log. Authors is related to articles through a primary key - foreign key using the id from the author table. Log is related to articles by log.path and concatenating '/article/' and article.slug.
+
+This program runs queries on the data in the news database to answer the questions:
+* What are the top 3 most read articles of all time?
+* Who are the top 3 authors by viewed articles?
+* On what days were requests to the site errors more than 1%?
+
+## Requirements
+### Environment
+I used a [Vagrant](https://www.vagrantup.com/) machine with Oracle [Virtual Box](https://www.virtualbox.org/) for virtualization. The Vagrantfile included in the repository will set up the required environment and initialize the news database. To do this, open your preferred commandline utility to the directory where you cloned this repository and run: ```vagrant up```
+This process will take some time to finalize.
+
+The database schema and data for the news database will have to be loaded from the supplied script in the archive named *newsdata.zip*. Extract the contents to the same directory as the other repository files.
+Once completed, to connect to the environment run: ```vagrant ssh``
+
+From the vagrant shell, navigate to the directory containing the files from the repository. To populate the news database, from the command line run: ```psql -d news -f newsdata.sql```
+
+Once completed, to create the required views for this application, run the following from the command line: ```psql -d news -f create_views.sql``` 
 
 **Instructions:**
 
-To run the application script, on the command prompt type:
+To run the application script, on the command line type:
 ```cmd
 python3 print_reports.py
 ```
 Then press enter or return.
-
-**Notes:**
-
-The queries take a few seconds each to run. As a result the output to the screen may appear stalled or delayed. Future versions will make use of materialized views to speed up queries.
 
 **Contact:**
 
