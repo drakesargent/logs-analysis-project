@@ -53,6 +53,7 @@ psql -d news -f create_views.sql
 #### Custom
 Should you choose to use your own environment, you will need to install and 
 configure the following:
+
 [Python version 3](https://www.python.org/downloads/)
 
 [psycopg2 version 2.7](http://initd.org/psycopg/download/)
